@@ -25,6 +25,7 @@
 
 <body>
   <div class="fireWorkParticle"></div>
+  <div id="board"></div>
   <noscript>
     You need to enable JavaScript to run this app.
   </noscript>
@@ -40,5 +41,32 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
 </body>
+<script>
+
+  var brd = document.createElement("DIV");
+  document.body.insertBefore(brd, document.getElementById("board"));
+
+  particles = [];
+
+  function newFireworkParticle(x, y, angle) {
+    var fwkPtc = document.createElement("DIV");
+    fwkPtc.setAttribute('class', 'fireWorkParticle');
+    fwkPtc.position = [];
+    fwkPtc.position.x = x;
+    fwkPtc.position.y = y;
+    fwkPtc.style.left = fwkPtc.position.x + 'px';
+    fwkPtc.style.top = fwkPtc.position.y + 'px';
+    brd.appendChild(fwkPtc);
+    particles.push(fwkPtc);
+    return fwkPtc;
+  }
+
+  newFireworkParticle(200, 200);
+
+  const fwkPtcIniV = 0.5;
+  const fwkPtcIniT = 2500;
+  const a = 0.0005;
+  const g = 0.0005;
+</script>
 
 </html>
