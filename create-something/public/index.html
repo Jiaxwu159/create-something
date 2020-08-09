@@ -1,123 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="theme-color" content="#000000">
-  <!--
-      manifest.json provides metadata used when your web app is added to the
-      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
-    -->
-  <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
-  <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-  <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<body style='background-color:black'>
+  <canvas id='myCanvas' width='800' height='800'></canvas>
+  <script>
+    const max_fireworks = 5,
+      max_sparks = 50;
+    let canvas = document.getElementById('myCanvas');
+    let context = canvas.getContext('2d');
+    let fireworks = [];
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-  <title>React App</title>
-</head>
+    for (let i = 0; i < max_fireworks; i++) {
+      let firework = {
+        sparks: []
+      };
+      for (let n = 0; n < max_sparks; n++) {
+        let spark = {
+          vx: Math.random() * 5 + .5,
+          vy: Math.random() * 5 + .5,
+          weight: Math.random() * .3 + .03,
+          red: Math.floor(Math.random() * 2),
+          green: Math.floor(Math.random() * 2),
+          blue: Math.floor(Math.random() * 2)
+        };
+        if (Math.random() > .5) spark.vx = -spark.vx;
+        if (Math.random() > .5) spark.vy = -spark.vy;
+        firework.sparks.push(spark);
+      }
+      fireworks.push(firework);
+      resetFirework(firework);
+    }
+    window.requestAnimationFrame(explode);
 
-<body>
-  <div class="fireWorkParticle"></div>
-  <div id="board"></div>
-  <noscript>
-    You need to enable JavaScript to run this app.
-  </noscript>
-  <div id="root"></div>
-  <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+    function resetFirework(firework) {
+      firework.x = Math.floor(Math.random() * canvas.width);
+      firework.y = canvas.height;
+      firework.age = 0;
+      firework.phase = 'fly';
+    }
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+    function explode() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      fireworks.forEach((firework, index) => {
+        if (firework.phase == 'explode') {
+          firework.sparks.forEach((spark) => {
+            for (let i = 0; i < 10; i++) {
+              let trailAge = firework.age + i;
+              let x = firework.x + spark.vx * trailAge;
+              let y = firework.y + spark.vy * trailAge + spark.weight * trailAge * spark.weight * trailAge;
+              let fade = i * 20 - firework.age * 2;
+              let r = Math.floor(spark.red * fade);
+              let g = Math.floor(spark.green * fade);
+              let b = Math.floor(spark.blue * fade);
+              context.beginPath();
+              context.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',1)';
+              context.rect(x, y, 4, 4);
+              context.fill();
+            }
+          });
+          firework.age++;
+          if (firework.age > 100 && Math.random() < .05) {
+            resetFirework(firework);
+          }
+        } else {
+          firework.y = firework.y - 10;
+          for (let spark = 0; spark < 15; spark++) {
+            context.beginPath();
+            context.fillStyle = 'rgba(' + index * 50 + ',' + spark * 17 + ',0,1)';
+            context.rect(firework.x + Math.random() * spark - spark / 2, firework.y + spark * 4, 4, 4);
+            context.fill();
+          }
+          if (Math.random() < .001 || firework.y < 200) firework.phase = 'explode';
+        }
+      });
+      window.requestAnimationFrame(explode);
+    }
+  </script>
 </body>
-<script>
-
-  var brd = document.createElement("DIV");
-  document.body.insertBefore(brd, document.getElementById("board"));
-
-  particles = [];
-
-  const fwkPtcIniV = 0.5;
-  const fwkPtcIniT = 2500;
-  const a = 0.0005;
-  const g = 0.0005;
-
-
-  function newFireworkParticle(x, y, angle) {
-    var fwkPtc = document.createElement("DIV");
-    fwkPtc.setAttribute('class', 'fireWorkParticle');
-    brd.appendChild(fwkPtc);
-    fwkPtc.time = fwkPtcIniT;
-    while (angle > 360)
-      angle -= 360;
-    while (angle < 0)
-      angle += 360;
-    fwkPtc.velocity = [];
-    if (angle > 270) {
-      fwkPtc.velocity.x = fwkPtcIniV * Math.sin(angle * Math.PI / 180);
-      fwkPtc.velocity.y = fwkPtcIniV * Math.cos(angle * Math.PI / 180);
-    }
-    else if (angle > 180) {
-      fwkPtc.velocity.x = fwkPtcIniV * Math.sin(angle * Math.PI / 180);
-      fwkPtc.velocity.y = fwkPtcIniV * Math.cos(angle * Math.PI / 180);
-    }
-    else if (angle > 90) {
-      fwkPtc.velocity.x = fwkPtcIniV * Math.sin(angle * Math.PI / 180);
-      fwkPtc.velocity.y = fwkPtcIniV * Math.cos(angle * Math.PI / 180);
-    }
-    else {
-      fwkPtc.velocity.x = fwkPtcIniV * Math.sin(angle * Math.PI / 180);
-      fwkPtc.velocity.y = fwkPtcIniV * Math.cos(angle * Math.PI / 180);
-    }
-    fwkPtc.position = [];
-    fwkPtc.position.x = x;
-    fwkPtc.position.y = y;
-    fwkPtc.style.left = fwkPtc.position.x + 'px';
-    fwkPtc.style.top = fwkPtc.position.y + 'px';
-    if (seeds == null)
-      seeds = [];
-    particles.push(fwkPtc);
-    return fwkPtc;
-  }
-
-  var before = Date.now();
-  var id = setInterval(frame, 5);
-  function frame() {
-    var current = Date.now();
-    var deltaTime = current - before;
-    before = current;
-    for (i in particles) {
-      var fwkPtc = particles[i];
-      fwkPtc.time -= deltaTime;
-      if (fwkPtc.time > 0) {
-        fwkPtc.velocity.x -= fwkPtc.velocity.x * a * deltaTime;
-        fwkPtc.velocity.y -= g * deltaTime + fwkPtc.velocity.y * a * deltaTime;
-        fwkPtc.position.x += fwkPtc.velocity.x * deltaTime;
-        fwkPtc.position.y -= fwkPtc.velocity.y * deltaTime;
-        fwkPtc.style.left = fwkPtc.position.x + 'px';
-        fwkPtc.style.top = fwkPtc.position.y + 'px';
-      }
-      else {
-        fwkPtc.parentNode.removeChild(fwkPtc);
-        particles.splice(i, 1);
-      }
-    }
-  }
-
-  
-newFireWorkStar(200, 200);
-
-</script>
 
 </html>
